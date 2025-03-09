@@ -63,27 +63,17 @@
  	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
  		return -EINVAL;
  
+diff --git a/fs/read_write.c b/fs/read_write.c
+index abcdefg..hijklmn 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -583,8 +583,18 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
- {
-	struct fd f = fdget_pos(fd);
-	ssize_t ret = -EBADF;
-
-	if (f.file) {
-		loff_t pos = file_pos_read(f.file);
-		ret = vfs_read(f.file, buf, count, &pos);
-		if (ret >= 0)
-			file_pos_write(f.file, pos);
-		fdput_pos(f);
-	}
-	return ret;
-}
-
+@@ -601,6 +601,14 @@ return ret;
+ }
+ 
 +#ifdef CONFIG_KSU
 +extern bool ksu_vfs_read_hook __read_mostly;
 +extern int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
-+			size_t *count_ptr);
++                               size_t *count_ptr);
 +#endif
 +
  SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
@@ -92,7 +82,7 @@
 +	if (unlikely(ksu_vfs_read_hook)) 
 +		ksu_handle_sys_read(fd, &buf, &count);
 +#endif
-	return ksys_read(fd, buf, count);
+ 	return ksys_read(fd, buf, count);
  }
 
 --- ./fs/stat.c.orig	2025-03-04 17:17:54.691068100 -0500
